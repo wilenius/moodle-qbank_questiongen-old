@@ -44,6 +44,9 @@ class story_form extends \moodleform {
         $mform = $this->_form;
         $contexts = $this->_customdata['contexts']->having_cap('moodle/question:add');
 
+        $courseid = optional_param('courseid', 0, PARAM_INT);
+        $mform->addElement('hidden', 'courseid', $courseid);
+
         // Question category.
         $mform->addElement('questioncategory', 'category', get_string('category', 'question'), ['contexts' => $contexts]);
         $mform->addHelpButton('category', 'category', 'qbank_genai');
