@@ -55,17 +55,23 @@ class xml {
         bool $addidentifier,
         int $genaiid
     ) {
-
         global $CFG;
+
+        require_once($CFG->dirroot . '/question/format/xml/format.php');
 
         // Work out if this is an uploaded file.
         // Or one from the filesarea.
 
+        $search = strstr($llmresponse->text, '<?xml version', true);
+        $cleandxml = str_replace($search, '', $llmresponse->text);
+        $cleandxml = str_replace("```", '', $cleandxml);
+
+        \local_debugger\performance\debugger::print_debug('test', 'cleandxml', $cleandxml);
         $fileformat = 'xml';
         $filedir = make_request_directory();
         $realfilename = uniqid() . "." . $fileformat;
         $importfile = $filedir . '/' . $realfilename;
-        $filecreated = file_put_contents($importfile, $llmresponse->text);
+        $filecreated = file_put_contents($importfile, $cleandxml);
 
         // $realfilename = $importform->get_new_filename('newfile');
         // $importfile = make_request_directory() . "/{$realfilename}";
@@ -73,12 +79,6 @@ class xml {
         //     throw new moodle_exception('uploadproblem');
         // }
 
-        $formatfile = $CFG->dirroot . '/question/format/xml/format.php';
-        if (!is_readable($formatfile)) {
-            throw new \moodle_exception('formatnotfound', 'question', '', $fileformat);
-        }
-
-        require_once($formatfile);
 
         $classname = 'qformat_xml';
         $qformat = new $classname();

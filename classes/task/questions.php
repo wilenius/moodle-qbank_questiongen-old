@@ -113,6 +113,7 @@ class questions extends \core\task\adhoc_task {
                     break;
             }
             $i++;
+            mtrace("[qbank_genai] Try $i of $numoftries...\n");
 
         }
 
