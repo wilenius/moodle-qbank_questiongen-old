@@ -1,0 +1,10 @@
+{
+    "name": "wilenius/genai",
+    "description": "This plugin allows you to automatically create questions on a given text using a large language model",
+    "license": "GPL-3.0-or-later",
+    "type": "moodle-qbank",
+    "version": "dev-main",
+    "require": {
+        "composer/installers": "~2.2"
+    }
+}
