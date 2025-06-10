@@ -68,49 +68,32 @@ function qbank_genai_get_questions($dataobject) {
         ]
     ];
 
-    if (class_exists('local_ai_manager\manager')) {
-        $ai = new local_ai_manager\manager('genai');
-        $llmresponse = $ai->perform_request("", ['messages' => $messages]);
-        if ($llmresponse->get_code() !== 200) {
-            throw new moodle_exception(
-                'Could not provide questions by AI tool', '', '', '',
-                $llmresponse->get_errormessage() . ' ' . $llmresponse->get_debuginfo()
-            );
-        }
-        $questions = new stdClass(); // The questions object.
-        $questions->text = $llmresponse->get_content();
-        $questions->prompt = $story;
-        return $questions;
-    }
-
-    // If local_ai_manager is not installed. Use the stand alone mode.
     $model = get_config('qbank_genai', 'model');
     $provider = get_config('qbank_genai', 'provider'); // OpenAI (default) or Azure
 
+    $headers = [
+            'Content-Type' => 'application/json',
+    ];
     if ($provider === 'Azure') {
         // If the provider is Azure, use the Azure API endpoint and Azure-specific HTTP header
         $url = get_config('qbank_genai', 'azure_api_endpoint'); // Use the Azure API endpoint from settings
-        $authorization = "api-key: " . $key;
+        $headers['api-key'] = $key;
     } else {
         // If the provider is not Azure, use the OpenAI API URL and OpenAI style HTTP header
         $url = 'https://api.openai.com/v1/chat/completions';
-        $authorization = "Authorization: Bearer " . $key;
+        $headers['Authorization'] = 'Bearer ' . $key;
     }
 
     $data = json_encode([
-        'model' =>  $model,
+        'model' => $model,
         'messages' =>  $messages,
     ]);
 
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', $authorization]);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
-    $result = json_decode(curl_exec($ch));
-    curl_close($ch);
+    $httpclient = new \core\http_client();
+    $options['headers'] = $headers;
+    $options['body'] = $data;
+
+    $result = json_decode($httpclient->post($url, $options)->getBody()->getContents());
 
     $questions = new stdClass(); // The questions object.
     if (isset($result->choices[0]->message->content)) {
