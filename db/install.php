@@ -17,16 +17,21 @@
 /**
  * Code to be executed after the plugin's database scheme has been installed is defined here.
  *
- * @package     qbank_genai
+ * @package     qbank_questiongen
  * @category    upgrade
  * @copyright   2023 Ruthy Salomon <ruthy.salomon@gmail.com> , Yedidia Klein <yedidia@openapp.co.il>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
- * Custom code to be run on installing the plugin.
+ * Deploys some initial example presets.
  */
-function xmldb_qbank_genai_install() {
-
+function xmldb_qbank_questiongen_install() {
+    global $CFG, $DB;
+    $initialpresets = file_get_contents($CFG->dirroot . '/question/bank/questiongen/db/initial_presets.json');
+    $presets = json_decode($initialpresets, true);
+    foreach ($presets as $preset) {
+        $DB->insert_record('qbank_questiongen_preset', $preset);
+    }
     return true;
 }

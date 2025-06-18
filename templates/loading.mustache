@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template qbank_genai/loading
+    @template qbank_questiongen/loading
 
     Template which defines the data shown when question are ready.
 
@@ -27,38 +27,33 @@
 
     Example context (json):
     {
-        "wwwroot": "https://moodle.example.com",
-        "courseid": "2",
-        "uniqid" : "1234567890",
-        "userid" : "2",
+        "courseid": 2,
+        "cmid": 124,
         "cron": "0"
     }
 }}
+{{> qbank_questiongen/intro }}
+
 {{#cron}}
     <div class="alert-warning">
-        {{#str}}cronoverdue, qbank_genai{{/str}}
+        {{#str}}cronoverdue, qbank_questiongen{{/str}}
     </div>
 {{/cron}}
-<p class='qbank_genai_created' id="qbank_genai_success">
-    {{#str}}generating, qbank_genai{{/str}}
-    <br>
-    {{#pix}}i/loading, core{{/pix}}
-</p>
-<div id="qbank_genai_info">
-    {{>qbank_genai/bar}}
+
+<div id="qbank_questiongen_progress">
+    {{{progressbar}}}
 </div>
 
-<div id="qbank_genai_uniqid" style="display:none;">{{uniqid}}</div>
-<div id="qbank_genai_userid" style="display:none;">{{userid}}</div>
+<div id="ai_manager_warningbox"></div>
 
-<p class="d-flex">
-    <a id="localaiquestions_backtocourse" class="btn btn-primary m-1" href='{{wwwroot}}/course/view.php?id={{courseid}}'>
-        {{#str}}backtocourse, qbank_genai{{/str}}
+<p class="d-flex mt-5">
+    <a id="localaiquestions_backtocourse" class="btn btn-primary m-1" href="{{config.wwwroot}}/course/view.php?id={{courseid}}">
+        {{#str}}backtocourse, qbank_questiongen{{/str}}
     </a>
-    <a id="qbank_genai_gotoquestionbank" class="btn btn-secondary m-1" href='{{wwwroot}}/question/edit.php?courseid={{courseid}}'>
-        {{#str}}gotoquestionbank, qbank_genai{{/str}}
+    <a id="qbank_questiongen_gotoquestionbank" class="btn btn-secondary m-1" href="{{config.wwwroot}}/question/edit.php?cmid={{cmid}}">
+        {{#str}}gotoquestionbank, qbank_questiongen{{/str}}
     </a>
-    <a id="qbank_genai_generatemore" class="btn btn-secondary m-1" href='{{wwwroot}}/local/aiquestions/story.php?courseid={{courseid}}'>
-        {{#str}}generatemore, qbank_genai{{/str}}
+    <a id="qbank_questiongen_generatemore" class="btn btn-secondary m-1" href="{{config.wwwroot}}/question/bank/questiongen/story.php?cmid={{cmid}}">
+        {{#str}}generatemore, qbank_questiongen{{/str}}
     </a>
 </p>

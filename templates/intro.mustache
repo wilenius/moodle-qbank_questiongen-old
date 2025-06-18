@@ -15,9 +15,9 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template qbank_questiongen/index
+    @template qbank_questiongen/intro
 
-    Template which defines the data shown when question are ready.
+    Template which defines the intro on the story page.
 
     Classes required for JS:
     * none
@@ -27,8 +27,13 @@
 
     Example context (json):
     {
+        "courseid": 2,
+        "cmid": 124,
+        "cron": "0"
     }
 }}
-<p> {{#str}} pluginname, qbank_questiongen {{/str}} </p>
-<p> {{#str}} pluginname_desc, qbank_questiongen {{/str}} </p>
-<p> {{#str}} pluginname_help, qbank_questiongen {{/str}} </p>
+<h4>{{#str}}pluginname, qbank_questiongen{{/str}}</h4>
+<div class="mt-5 mb-5">
+    <p>{{#str}}pluginname_desc, qbank_questiongen{{/str}}</p>
+    <div id="ai_manager_infobox"></div>
+</div>

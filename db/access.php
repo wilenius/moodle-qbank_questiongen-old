@@ -14,22 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_questiongen;
-
-use core_question\local\bank\navigation_node_base;
-
 /**
- * Plugin entrypoint for qbank.
+ * Capabilities for the qbank_questiongen plugin.
  *
  * @package    qbank_questiongen
- * @copyright  ISB Bayern, 2024
- * @author     Dr. Peter Mayer
+ * @copyright  2025 ISB Bayern
+ * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plugin_feature extends \core_question\local\bank\plugin_features_base {
 
-    #[\Override]
-    public function get_navigation_node(): ?navigation_node_base {
-        return new navigation();
-    }
-}
+defined('MOODLE_INTERNAL') || die();
+
+$capabilities = [
+        'qbank/questiongen:manage' => [
+                'captype' => 'write',
+                'contextlevel' => CONTEXT_SYSTEM,
+                'archetypes' => [
+                        'manager' => CAP_ALLOW,
+                ],
+        ],
+];

@@ -1,0 +1,75 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template qbank_questiongen/loading
+
+    Template which defines the data shown when question are ready.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Example context (json):
+    {
+        "presets": [
+            {
+                "id": 5,
+                "name": "Example preset multiple choice",
+                "primer": "You are a helpful assistant",
+                "instructions": "Create a multiple choice question...",
+                "example": "&lt;?xml version=..."
+            },
+            {
+                "id": 8,
+                "name": "Example preset match",
+                "primer": "You are a helpful assistant",
+                "instructions": "Create a match question...",
+                "example": "&lt;?xml version=..."
+            }
+        ]
+    }
+}}
+<div class="d-flex flex-column">
+    <div class="mt-5 mb-5">
+        <a href="{{config.wwwroot}}/question/bank/questiongen/edit_preset.php" class="btn btn-primary">{{#str}}addpreset, qbank_questiongen{{/str}}</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered">
+            <thead>
+            <tr>
+                <th scope="col">{{#str}}name, qbank_questiongen{{/str}}</th>
+                <th scope="col">{{#str}}primer, qbank_questiongen{{/str}}</th>
+                <th scope="col">{{#str}}instructions, qbank_questiongen{{/str}}</th>
+                <th scope="col">{{#str}}example, qbank_questiongen{{/str}}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#presets}}
+                <tr>
+                    <td><a href="{{config.wwwroot}}/question/bank/questiongen/edit_preset.php?id={{id}}">{{name}}</a></td>
+                    <td>{{{primer}}}</td>
+                    <td>{{{instructions}}}</td>
+                    <td><div style="max-width: 500px; max-height: 200px; overflow: scroll">{{{example}}}</div></td>
+                </tr>
+            {{/presets}}
+            </tbody>
+        </table>
+    </div>
+</div>
+

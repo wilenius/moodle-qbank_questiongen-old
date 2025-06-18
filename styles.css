@@ -1,3 +1,5 @@
-.local_aiquestions_questiontext p {
-    display: inline;
+/* Very hacky way to make the progress bar text also show longer texts (error messages) */
+#page-question-bank-questiongen-story #qbank_questiongen_progress .progressbar_container.stored-progress-bar > div > div > div {
+    text-overflow: inherit;
+    white-space: break-spaces;
 }

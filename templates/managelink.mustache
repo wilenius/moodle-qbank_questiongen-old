@@ -15,20 +15,18 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template qbank_questiongen/index
-
-    Template which defines the data shown when question are ready.
-
-    Classes required for JS:
-    * none
-
-    Data attributes required for JS:
-    * none
+    @template qbank_questiongen/managelink
 
     Example context (json):
     {
     }
 }}
-<p> {{#str}} pluginname, qbank_questiongen {{/str}} </p>
-<p> {{#str}} pluginname_desc, qbank_questiongen {{/str}} </p>
-<p> {{#str}} pluginname_help, qbank_questiongen {{/str}} </p>
+<div>
+    <div class="alert alert-danger d-flex flex-column" role="alert">
+        {{#str}}managepresetswarning, qbank_questiongen{{/str}}
+        <div class="mt-3 align-self-center">
+            <a href="{{config.wwwroot}}/question/bank/questiongen/presets.php" class="btn btn-danger">{{#str}}managepresets, qbank_questiongen{{/str}}</a>
+        </div>
+    </div>
+
+</div>

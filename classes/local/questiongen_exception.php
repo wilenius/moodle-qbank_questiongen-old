@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_questiongen;
+namespace qbank_questiongen\local;
 
-use core_question\local\bank\navigation_node_base;
+use core\exception\moodle_exception;
 
 /**
- * Plugin entrypoint for qbank.
+ * Custom exception to distinguish between exceptions that should trigger a user-faced message and those who should not.
  *
  * @package    qbank_questiongen
- * @copyright  ISB Bayern, 2024
- * @author     Dr. Peter Mayer
+ * @copyright  2025 ISB Bayern
+ * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plugin_feature extends \core_question\local\bank\plugin_features_base {
-
-    #[\Override]
-    public function get_navigation_node(): ?navigation_node_base {
-        return new navigation();
-    }
+class questiongen_exception extends moodle_exception {
 }

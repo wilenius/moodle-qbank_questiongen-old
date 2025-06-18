@@ -14,38 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Plugin entrypoint for navigation.
- *
- * @package    qbank_genai
- * @copyright  ISB Bayern, 2024
- * @author     Dr. Peter Mayer
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-
-namespace qbank_genai;
+namespace qbank_questiongen;
 
 /**
  * Class navigation.
  *
- * @package    qbank_genai
+ * @package    qbank_questiongen
  * @copyright  ISB Bayern, 2024
  * @author     Dr. Peter Mayer
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class navigation extends \core_question\local\bank\navigation_node_base {
 
+    #[\Override]
     public function get_navigation_title(): string {
-        return get_string('aiquestions', 'qbank_genai');
+        return get_string('pluginname', 'qbank_questiongen');
     }
 
+    #[\Override]
     public function get_navigation_key(): string {
         return 'generatequestion';
     }
 
+    #[\Override]
     public function get_navigation_url(): \moodle_url {
-        return new \moodle_url('/question/bank/genai/story.php');
+        return new \moodle_url('/question/bank/questiongen/story.php');
     }
-
 }

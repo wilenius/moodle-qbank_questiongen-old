@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace local_aiquestions\privacy;
+namespace qbank_questiongen\privacy;
 
 /**
  * Privacy API implementation for the AI Text to questions generator plugin.
  *
- * @package     qbank_genai
- * @category    privacy
+ * @package     qbank_questiongen
  * @copyright   2023 Ruthy Salomon <ruthy.salomon@gmail.com> , Yedidia Klein <yedidia@openapp.co.il>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

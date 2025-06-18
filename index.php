@@ -17,7 +17,7 @@
 /**
  * Plugin administration pages are defined here.
  *
- * @package     qbank_genai
+ * @package     qbank_questiongen
  * @category    admin
  * @copyright   2023 Ruthy Salomon <ruthy.salomon@gmail.com> , Yedidia Klein <yedidia@openapp.co.il>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -28,13 +28,13 @@ defined('MOODLE_INTERNAL') || die();
 require_login();
 
 $PAGE->set_context(context_system::instance());
-$PAGE->set_heading(get_string('pluginname', 'qbank_genai'));
-$PAGE->set_title(get_string('pluginname', 'qbank_genai'));
-$PAGE->set_url('/local/aiquestions/');
+$PAGE->set_heading(get_string('pluginname', 'qbank_questiongen'));
+$PAGE->set_title(get_string('pluginname', 'qbank_questiongen'));
+$PAGE->set_url('/question/bank/questiongen/');
 $PAGE->set_pagelayout('standard');
-$PAGE->navbar->add(get_string('pluginname', 'qbank_genai'), new moodle_url('/local/aiquestions/'));
+$PAGE->navbar->add(get_string('pluginname', 'qbank_questiongen'), new moodle_url('/question/bank/questiongen/'));
 
 
 echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('qbank_genai/index', []);
+echo $OUTPUT->render_from_template('qbank_questiongen/index', []);
 echo $OUTPUT->footer();

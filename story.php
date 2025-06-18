@@ -15,25 +15,27 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin administration pages are defined here.
+ * Page to configure and start the generation of questions.
  *
- * @package     qbank_genai
- * @category    admin
+ * @package     qbank_questiongen
  * @copyright   2023 Ruthy Salomon <ruthy.salomon@gmail.com> , Yedidia Klein <yedidia@openapp.co.il>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use qbank_questiongen\form\story_form;
 
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->dirroot . '/question/editlib.php');
 
 defined('MOODLE_INTERNAL') || die();
 
-core_question\local\bank\helper::require_plugin_enabled('qbank_genai');
+core_question\local\bank\helper::require_plugin_enabled('qbank_questiongen');
 
-list($thispageurl, $contexts, $cmid, $cm, $module, $pagevars) = question_edit_setup('import', '/question/bank/genai/story.php');
+[$thispageurl, $contexts, $cmid, $cm, $module, $pagevars] =
+        question_edit_setup('import', '/question/bank/questiongen/story.php');
 
-list($catid, $catcontext) = explode(',', $pagevars['cat']);
-if (!$qbankcategory = $DB->get_record("question_categories", ['id' => $catid])) {
+[$catid, $catcontext] = explode(',', $pagevars['cat']);
+if (!$qbankcategory = $DB->get_record('question_categories', ['id' => $catid])) {
     throw new moodle_exception('nocategory', 'question');
 }
 
@@ -48,99 +50,107 @@ if ($contexts === null) { // Need to get the course from the chosen category.
     if ($thiscontext->contextlevel == CONTEXT_COURSE) {
         require_login($thiscontext->instanceid, false);
     } else if ($thiscontext->contextlevel == CONTEXT_MODULE) {
-        list($module, $cm) = get_module_from_cmid($thiscontext->instanceid);
+        [$module, $cm] = get_module_from_cmid($thiscontext->instanceid);
         require_login($cm->course, false, $cm);
     }
-    $contexts->require_one_edit_tab_cap($edittab);
+    $contexts->require_one_edit_tab_cap('import');
 }
 
 $PAGE->set_url($thispageurl);
 
 require_once("$CFG->libdir/formslib.php");
-require_once(__DIR__ . '/locallib.php');
 
-// $PAGE->set_context(\context_system::instance());
-$PAGE->set_heading(get_string('pluginname', 'qbank_genai'));
-$PAGE->set_title(get_string('pluginname', 'qbank_genai'));
+$PAGE->set_heading(get_string('pluginname', 'qbank_questiongen'));
+$PAGE->set_title(get_string('pluginname', 'qbank_questiongen'));
 $PAGE->set_pagelayout('standard');
-$PAGE->requires->js_call_amd('qbank_genai/state');
 
-echo $OUTPUT->header();
-
-// Print horizontal nav if needed.
-$renderer = $PAGE->get_renderer('core_question', 'bank');
-
-$qbankaction = new \core_question\output\qbank_action_menu($thispageurl);
-echo $renderer->render($qbankaction);
-
-$mform = new \qbank_genai\story_form(null, ['contexts' => $contexts, 'cmid' => $cmid]);
+$mform = new \qbank_questiongen\form\story_form(null, ['contexts' => $contexts, 'cmid' => $cmid]);
+$provider = get_config('qbank_questiongen', 'provider');
 
 if ($mform->is_cancelled()) {
     redirect($CFG->wwwroot . '/question/edit.php?cmid=' . $cmid);
 } else if ($data = $mform->get_data()) {
 
     // Call the adhoc task.
-    // we need the courseid anyway so get it from cmid
+    // We need the courseid anyway so get it from cmid.
     $cm = get_coursemodule_from_id('', $cmid);
-    $courseid = $cm->course;
-    $task = new \qbank_genai\task\questions();
-    if ($task) {
-
-        $uniqid = uniqid($USER->id, true);
-
-        $preset = $data->preset;
-
-        // Create the DB entry.
-        $dbrecord = new \stdClass();
-        // $dbrecord->course = $courseid;
-        $dbrecord->numoftries = get_config('qbank_genai', 'numoftries');
-        $dbrecord->numofquestions = $data->numofquestions;
-        $dbrecord->aiidentifier = $data->addidentifier;
-        $dbrecord->category = $qbankcategory->id;
-        $dbrecord->userid = $USER->id;
-        $dbrecord->qformat = $data->presetformat;
-        $dbrecord->timecreated = time();
-        $dbrecord->timemodified = 0;
-        $dbrecord->tries = 0;
-        $dbrecord->story = $data->story;
-        $dbrecord->uniqid = $uniqid;
-        $dbrecord->llmresponse = '';
-        $dbrecord->success = '';
-        $dbrecord->primer = $data->{'primer' . $preset};
-        $dbrecord->instructions = $data->{'instructions' . $preset};
-        $dbrecord->example = $data->{'example' . $preset};
-
-        $inserted = $DB->insert_record('qbank_genai', $dbrecord);
-
-        if ($inserted == 0) {
-            throw new \moodle_exception('There was an error when storing the genai processing data to db.');
-        }
-        $dbrecord->id = $inserted;
-
-
-        $task->set_custom_data([
-            'genaiid' => $dbrecord->id,
-            'uniqid' => $uniqid
-        ]);
-        \core\task\manager::queue_adhoc_task($task);
-        $success = get_string('tasksuccess', 'qbank_genai');
+    if ($cm) {
+        $courseid = $cm->course;
     } else {
-        $error = get_string('taskerror', 'qbank_genai');
+        $courseid = required_param('courseid', PARAM_INT);
     }
+
+    $questiongenids = \qbank_questiongen\local\utils::store_questiongen_data($data);
+
+    $customdata = [
+            'contextid' => \context_module::instance($cm->id)->id,
+            'sendexistingquestionsascontext' => !empty($data->sendexistingquestionsascontext),
+    ];
+
+    if (intval($data->mode) === story_form::QUESTIONGEN_MODE_COURSECONTENTS) {
+        $customdata['courseactivities'] = $data->courseactivities;
+    }
+
+    // We intentionally do not queue one task for each question generation here, because we want the question generations to run
+    // one after each other. That of course takes longer, but allows us to send als the newly created question as context for the
+    // next one so the LLM does not create the same question again. Also it's easier to track the progress of one task in the
+    // frontend instead of multiple ones.
+
+    $task = new \qbank_questiongen\task\generate_questions();
+    $task->set_userid($USER->id);
+    $customdata['questiongenids'] = $questiongenids;
+    // We need to re-query the adhoc task once queued to get the correct id for showing the progress bar.
+    // Therefore, we need something to identify the adhoc tasks.
+    $uniqadhoctaskid = uniqid();
+    $customdata['uniqadhoctaskid'] = $uniqadhoctaskid;
+    $task->set_custom_data($customdata);
+    \core\task\manager::queue_adhoc_task($task);
+    $currentadhoctasks = \core\task\manager::get_adhoc_tasks($task::class);
+    $adhoctask = array_values(array_filter($currentadhoctasks,
+            fn($currentadhoctask) => isset($currentadhoctask->get_custom_data()->uniqadhoctaskid) &&
+                    $currentadhoctask->get_custom_data()->uniqadhoctaskid === $uniqadhoctaskid))[0];
+    $adhoctask->initialise_stored_progress();
+    $adhoctask->set_initial_progress();
+
+    $adhoctaskprogressidnumber =
+            \core\output\stored_progress_bar::convert_to_idnumber(\qbank_questiongen\task\generate_questions::class,
+                    $adhoctask->get_id());
+    $adhoctaskprogressbar = \core\output\stored_progress_bar::get_by_idnumber($adhoctaskprogressidnumber);
+
     // Check if the cron is overdue.
     $lastcron = get_config('tool_task', 'lastcronstart');
     $cronoverdue = ($lastcron < time() - 3600 * 24);
 
     // Prepare the data for the template.
     $datafortemplate = [
-        'wwwroot' => $CFG->wwwroot,
-        'uniqid' => $uniqid,
-        'userid' => $USER->id,
-        'cron' => $cronoverdue,
+            'wwwroot' => $CFG->wwwroot,
+            'userid' => $USER->id,
+            'courseid' => $courseid,
+            'cmid' => $cmid,
+            'cron' => $cronoverdue,
+            'progressbar' => $adhoctaskprogressbar->get_content(),
     ];
+    echo $OUTPUT->header();
+    $renderer = $PAGE->get_renderer('core_question', 'bank');
+    $qbankaction = new \core_question\output\qbank_action_menu($thispageurl);
+    echo $renderer->render($qbankaction);
+
     // Load the ready template.
-    echo $OUTPUT->render_from_template('qbank_genai/loading', $datafortemplate);
+    echo $OUTPUT->render_from_template('qbank_questiongen/loading', $datafortemplate);
+    if ($provider === 'local_ai_manager') {
+        $PAGE->requires->js_call_amd('local_ai_manager/warningbox', 'renderWarningBox', ['#ai_manager_warningbox']);
+    }
 } else {
+    echo $OUTPUT->header();
+    $renderer = $PAGE->get_renderer('core_question', 'bank');
+    $qbankaction = new \core_question\output\qbank_action_menu($thispageurl);
+    echo $renderer->render($qbankaction);
+    echo $OUTPUT->render_from_template('qbank_questiongen/intro', []);
+
+    if ($provider === 'local_ai_manager') {
+        $PAGE->requires->js_call_amd('local_ai_manager/infobox', 'renderInfoBox',
+                ['qbank_questiongen', $USER->id, '#ai_manager_infobox', ['questiongeneration', 'itt']]);
+    }
     $mform->display();
 }
 
