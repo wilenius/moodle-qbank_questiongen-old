@@ -56,6 +56,25 @@ if ($contexts === null) { // Need to get the course from the chosen category.
     $contexts->require_one_edit_tab_cap('import');
 }
 
+$disablederrormessage = '';
+$provider = get_config('qbank_questiongen', 'provider');
+if ($provider === 'local_ai_manager') {
+
+    $qbankcontext = \context_module::instance($cmid);
+    $aiconfig = \local_ai_manager\ai_manager_utils::get_ai_config($USER, $qbankcontext->id, null, ['questiongeneration']);
+    if ($aiconfig['availability']['available'] === \local_ai_manager\ai_manager_utils::AVAILABILITY_HIDDEN
+            || $aiconfig['purposes'][0]['available'] === \local_ai_manager\ai_manager_utils::AVAILABILITY_HIDDEN) {
+        throw new \core\exception\moodle_exception('errorquestiongenunavailable', 'qbank_questiongen');
+    }
+
+    if ($aiconfig['availability']['available'] === \local_ai_manager\ai_manager_utils::AVAILABILITY_DISABLED
+            || $aiconfig['purposes'][0]['available'] === \local_ai_manager\ai_manager_utils::AVAILABILITY_DISABLED) {
+        $disablederrormessage = !empty($aiconfig['availability']['errormessage'])
+                ? $aiconfig['availability']['errormessage']
+                : $aiconfig['purposes'][0]['errormessage'];
+    }
+}
+
 $PAGE->set_url($thispageurl);
 
 require_once("$CFG->libdir/formslib.php");
@@ -67,9 +86,9 @@ $PAGE->set_pagelayout('standard');
 $mform = new \qbank_questiongen\form\story_form(null, ['contexts' => $contexts, 'cmid' => $cmid]);
 $provider = get_config('qbank_questiongen', 'provider');
 
-if ($mform->is_cancelled()) {
+if ($mform->is_cancelled() && empty($disablederrormessage)) {
     redirect($CFG->wwwroot . '/question/edit.php?cmid=' . $cmid);
-} else if ($data = $mform->get_data()) {
+} else if (($data = $mform->get_data()) && empty($disablederrormessage)) {
 
     // Call the adhoc task.
     // We need the courseid anyway so get it from cmid.
@@ -141,17 +160,22 @@ if ($mform->is_cancelled()) {
         $PAGE->requires->js_call_amd('local_ai_manager/warningbox', 'renderWarningBox', ['#ai_manager_warningbox']);
     }
 } else {
-    echo $OUTPUT->header();
-    $renderer = $PAGE->get_renderer('core_question', 'bank');
-    $qbankaction = new \core_question\output\qbank_action_menu($thispageurl);
-    echo $renderer->render($qbankaction);
-    echo $OUTPUT->render_from_template('qbank_questiongen/intro', []);
+    if ($disablederrormessage) {
+        echo $OUTPUT->header();
+        echo html_writer::div($disablederrormessage, 'alert alert-warning');
+    } else {
+        echo $OUTPUT->header();
+        $renderer = $PAGE->get_renderer('core_question', 'bank');
+        $qbankaction = new \core_question\output\qbank_action_menu($thispageurl);
+        echo $renderer->render($qbankaction);
+        echo $OUTPUT->render_from_template('qbank_questiongen/intro', []);
 
-    if ($provider === 'local_ai_manager') {
-        $PAGE->requires->js_call_amd('local_ai_manager/infobox', 'renderInfoBox',
-                ['qbank_questiongen', $USER->id, '#ai_manager_infobox', ['questiongeneration', 'itt']]);
+        if ($provider === 'local_ai_manager') {
+            $PAGE->requires->js_call_amd('local_ai_manager/infobox', 'renderInfoBox',
+                    ['qbank_questiongen', $USER->id, '#ai_manager_infobox', ['questiongeneration', 'itt']]);
+        }
+        $mform->display();
     }
-    $mform->display();
 }
 
 echo $OUTPUT->footer();

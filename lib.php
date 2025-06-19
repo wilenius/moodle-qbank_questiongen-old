@@ -24,48 +24,6 @@
  */
 
 /**
- * Add the AI Questions menu to the course administration menu.
- *
- * @param settings_navigation $settingsnav
- * @param context $context
- */
-function qbank_questiongen_extend_settings_navigation($settingsnav, $context) {
-    global $PAGE;
-
-    // Add the AI Questions menu to the course administration menu only if the user has the permission to add questions.
-    if (has_capability('moodle/question:add', $context)) {
-
-        if ($settingnode = $settingsnav->find('courseadmin', navigation_node::TYPE_COURSE)) {
-            $strfather = get_string('pluginname', 'qbank_questiongen');
-            $fathernode = navigation_node::create(
-                $strfather,
-                null,
-                navigation_node::NODETYPE_BRANCH,
-                'qbank_questiongen_father',
-                'qbank_questiongen_father'
-            );
-
-            $settingnode->add_node($fathernode);
-            $strlist = get_string('story', 'qbank_questiongen');
-            $url = new moodle_url('/local/aiquestions/story.php', ['courseid' => $PAGE->course->id]);
-            $listnode = navigation_node::create(
-                $strlist,
-                $url,
-                navigation_node::NODETYPE_LEAF,
-                'qbank_questiongen_story',
-                'qbank_questiongen_story',
-                new pix_icon('f/avi-24', $strlist)
-            );
-
-            if ($PAGE->url->compare($url, URL_MATCH_BASE)) {
-                $listnode->make_active();
-            }
-            $fathernode->add_node($listnode);
-        }
-    }
-}
-
-/**
  * Delete file content from the qbank_questiongen_resource_cache table if the corresponding file has been deleted.
  *
  * Will only be deleted if no other file with this content hash exists.

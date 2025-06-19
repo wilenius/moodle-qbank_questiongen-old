@@ -66,6 +66,7 @@ $string['errornoactivitiesselected'] = 'If you want to use content from the cour
 $string['errornogenerateentriesfound'] = 'No entries for generating questions could be found.';
 $string['errornotcreated'] = 'Error: questions were not created';
 $string['errorpdfnotsupported'] = 'The PDF you were trying to use unfortunately seems to not being compatible: {$a}';
+$string['errorquestiongenunavailable'] = 'The AI question generation is not available.';
 $string['errorstoryempty'] = 'You must provide content to be able to generate questions.';
 $string['errortopicempty'] = 'You must provide a topic to be able to generate questions.';
 $string['example'] = 'Example';
