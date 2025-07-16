@@ -173,6 +173,8 @@ if ($mform->is_cancelled() && empty($disablederrormessage)) {
         if ($provider === 'local_ai_manager') {
             $PAGE->requires->js_call_amd('local_ai_manager/infobox', 'renderInfoBox',
                     ['qbank_questiongen', $USER->id, '#ai_manager_infobox', ['questiongeneration', 'itt']]);
+            $PAGE->requires->js_call_amd('local_ai_manager/userquota', 'renderUserQuota',
+                    ['#ai_manager_userquota', ['questiongeneration']]);
         }
         $mform->display();
     }
