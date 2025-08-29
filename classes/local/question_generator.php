@@ -309,6 +309,17 @@ class question_generator {
             return $record->extractedcontent;
         }
 
+        // Check if ITT (image-to-text) purpose is available before attempting conversion.
+        try {
+            $purposeoptions = ai_manager_utils::get_available_purpose_options('itt');
+            if (empty($purposeoptions)) {
+                throw new questiongen_exception('errorimagetotextnotavailable', 'qbank_questiongen');
+            }
+        } catch (\Throwable $e) {
+            // Catch any error from ai_manager_utils, including null pointer exceptions from missing ITT plugins.
+            throw new questiongen_exception('errorimagetotextnotavailable', 'qbank_questiongen');
+        }
+
         // For example 'application/pdf' is not supported by some AI systems.
         if ($this->is_mimetype_supported_by_ai_system($file->get_mimetype())) {
             $encodedimage = 'data:' . $file->get_mimetype() . ';base64,' . base64_encode($file->get_content());
@@ -443,11 +454,16 @@ class question_generator {
      */
     public function is_mimetype_supported_by_ai_system(string $mimetype): bool {
         // TODO Proper handling of disabled purpose, not configured purpose by tenant manager.
-        $purposeoptions = ai_manager_utils::get_available_purpose_options('itt');
-        if (empty($purposeoptions)) {
+        try {
+            $purposeoptions = ai_manager_utils::get_available_purpose_options('itt');
+            if (empty($purposeoptions)) {
+                throw new questiongen_exception('errorimagetotextnotavailable', 'qbank_questiongen');
+            }
+            return in_array($mimetype, $purposeoptions['allowedmimetypes']);
+        } catch (\Throwable $e) {
+            // Catch any error from ai_manager_utils, including null pointer exceptions from missing ITT plugins.
             throw new questiongen_exception('errorimagetotextnotavailable', 'qbank_questiongen');
         }
-        return in_array($mimetype, $purposeoptions['allowedmimetypes']);
     }
 
     /**
