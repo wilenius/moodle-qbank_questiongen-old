@@ -442,9 +442,13 @@ class question_generator {
      * @throws questiongen_exception if the connector to the AI system is not properly set up
      */
     public function is_mimetype_supported_by_ai_system(string $mimetype): bool {
-        // TODO Proper handling of disabled purpose, not configured purpose by tenant manager.
+        global $USER;
+        if (ai_manager_utils::get_ai_config($USER, $this->contextid, null, ['itt'])['availability'] !==
+                ai_manager_utils::AVAILABILITY_AVAILABLE) {
+            throw new questiongen_exception('errorimagetotextnotavailable', 'qbank_questiongen');
+        }
         $purposeoptions = ai_manager_utils::get_available_purpose_options('itt');
-        if (empty($purposeoptions)) {
+        if (empty($purposeoptions) || empty($purposeoptions['allowedmimetypes'])) {
             throw new questiongen_exception('errorimagetotextnotavailable', 'qbank_questiongen');
         }
         return in_array($mimetype, $purposeoptions['allowedmimetypes']);
