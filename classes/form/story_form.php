@@ -178,6 +178,7 @@ class story_form extends \moodleform {
 
         $mform->addElement('checkbox', 'sendexistingquestionsascontext',
                 get_string('sendexistingquestionsascontext', 'qbank_questiongen'));
+        $mform->addHelpButton('sendexistingquestionsascontext', 'sendexistingquestionsascontext', 'qbank_questiongen');
         $mform->setDefault('sendexistingquestionsascontext', 1);
         $mform->setType('sendexistingquestionsascontext', PARAM_BOOL);
 
